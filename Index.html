@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Anniversary ❤️</title>
+    <style>
+        /* ==========================================================================
+           GLOBAL BASE STYLES & THEMING
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #120202;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 412px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: #210505;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            border: 2px solid #3a0d0d;
+        }
+
+        @media (min-width: 415px) {
+            .app-container {
+                border-radius: 30px;
+                height: 85vh;
+            }
+        }
+
+        /* ==========================================================================
+           PAGE ARCHITECTURE & ROUTING TRANSITIONS
+           ========================================================================== */
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.96);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: transparent;
+            z-index: 5;
+        }
+
+        .page.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .scrollable-content {
+            width: 100%;
+            max-height: 52%;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .scrollable-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background: #d62828;
+            border-radius: 10px;
+        }
+
+        /* ==========================================================================
+           REUSABLE COMPONENTS
+           ========================================================================== */
+        button {
+            background-color: #d62828;
+            color: #ffffff;
+            border: none;
+            padding: 12px 35px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(214, 40, 40, 0.4);
+            transition: background 0.2s, transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        button:active {
+            transform: scale(0.97);
+            background-color: #b51a1a;
+        }
+
+        .media-fallback {
+            width: 100%;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .media-fallback span {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        /* ==========================================================================
+           PAGE 1: SECURITY PIN INTERFACE
+           ========================================================================== */
+        .heart-frame {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 25px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .heart-bg {
+            background-color: #d62828;
+            width: 70px;
+            height: 70px;
+            position: absolute;
+            top: 30px;
+            left: 25px;
+            transform: rotate(-45deg);
+        }
+        .heart-bg::before, .heart-bg::after {
+            content: "";
+            background-color: #d62828;
+            border-radius: 50%;
+            position: absolute;
+            width: 70px;
+            height: 70px;
+        }
+        .heart-bg::before { top: -35px; left: 0; }
+        .heart-bg::after { top: 0; left: 35px; }
+
+        .heart-content {
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+        }
+
+        .passcode-header {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ffb3b3;
+            margin-bottom: 15px;
+        }
+
+        .pin-slots {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .slot {
+            width: 35px;
+            height: 45px;
+            border-bottom: 3px solid #5a1818;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4d4d;
+            transition: border-color 0.2s, transform 0.1s;
+        }
+
+        .slot.filled {
+            border-bottom-color: #d62828;
+            animation: popSlot 0.15s ease-out;
+        }
+
+        .pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px 25px;
+        }
+
+        .pad-btn {
+            width: 65px;
+            height: 65px;
+            background-color: #3d0c0c;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: background 0.1s, transform 0.05s;
+        }
+
+        .pad-btn:active {
+            background-color: #5a1414;
+            transform: scale(0.92);
+        }
+
+        /* ==========================================================================
+           PAGE 4: CELEBRATION, TIMER & TIMELINE PROGRESS TRACKER
+           ========================================================================== */
+        .live-counter-box {
+            background: rgba(214, 40, 40, 0.1);
+            border: 1px solid #d62828;
+            padding: 12px 8px;
+            border-radius: 15px;
+            width: 100%;
+            margin: 10px 0;
+            z-index: 10;
+        }
+
+        .counter-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .counter-unit {
+            background: #3d0c0c;
+            padding: 8px 0;
+            border-radius: 8px;
+        }
+
+        .counter-num {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+
+        .counter-label {
+            font-size: 9px;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .timeline-container {
+            width: 100%;
+            margin: 15px 0;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            text-align: left;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 12px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 16px;
+            width: 2px;
+            height: calc(100% + 4px);
+            background: #5a1818;
+            z-index: 1;
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .timeline-badge {
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 20px;
+            height: 20px;
+            background: #210505;
+            border: 2px solid #ff4d4d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            z-index: 2;
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+
+        .timeline-desc {
+            font-size: 12px;
+            color: #ddd;
+            margin-top: 1px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .art-frame {
+            background: #1a0404;
+            border: 4px solid #b8860b;
+            outline: 1px solid #000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            padding: 2px;
+        }
+
+        .art-frame img {
+            width: 100%;
+            height: 180px; 
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ==========================================================================
+           PAGE 4B: INTERACTIVE ENVELOPE / LETTER
+           ========================================================================== */
+        .envelope-wrapper {
+            position: relative;
+            width: 220px;
+            height: 140px;
+            background: #a31d1d;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            cursor: pointer;
+            margin: 40px 0;
+            transition: transform 0.3s;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 110px solid transparent;
+            border-right: 110px solid transparent;
+            border-top: 80px solid #d62828;
+            transform-origin: top;
+            transition: transform 0.4s ease 0.2s;
+            z-index: 3;
+        }
+
+        .envelope-letter {
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            width: 200px;
+            height: 120px;
+            background: #fff8f8;
+            color: #210505;
+            padding: 12px;
+            font-size: 11px;
+            text-align: left;
+            border-radius: 6px;
+            transition: transform 0.5s ease, height 0.5s ease;
+            z-index: 2;
+            overflow: hidden;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.1);
+        }
+
+        .envelope-wrapper.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope-wrapper.open .envelope-letter {
+            transform: translateY(-90px);
+            height: 250px;
+            z-index: 4;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* ==========================================================================
+           PAGE 5: VINYL MUSIC PLAYER
+           ========================================================================= */
+        .vinyl-container {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            margin: 20px 0;
+        }
+
+        .vinyl-disk {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #000 30%, #222 31%, #000 40%, #111 50%, #000 70%);
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: rotateDisk 4s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .vinyl-disk.playing {
+            animation-play-state: running;
+        }
+
+        .vinyl-center {
+            width: 45px;
+            height: 45px;
+            background-color: #d62828;
+            border-radius: 50%;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tone-arm {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 60px;
+            height: 90px;
+            transform-origin: top right;
+            transform: rotate(-25deg);
+            transition: transform 0.4s ease;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .tone-arm.engaged {
+            transform: rotate(5deg);
+        }
+
+        /* ==========================================================================
+           PAGE 6: INTERACTIVE TAP REVEAL BOUQUET
+           ========================================================================== */
+        .interactive-flower-box {
+            background: #3d0c0c;
+            width: 100%;
+            padding: 20px;
+            border-radius: 20px;
+            min-height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            border: 2px dashed #ff4d4d;
+        }
+
+        #reason-text-box {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #ffb3b3;
+            font-style: italic;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* ==========================================================================
+           PAGE 7: COUPON BOOK & KISS MACHINE
+           ========================================================================== */
+        .coupon-card {
+            background: linear-gradient(135deg, #ff4d4d 0%, #c1121f 100%);
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            position: relative;
+            text-align: left;
+            border-left: 6px dashed #210505;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .coupon-card::after {
+            content: '🎟️';
+            position: absolute;
+            right: 15px;
+            top: calc(50% - 15px);
+            font-size: 26px;
+            opacity: 0.3;
+        }
+
+        .coupon-title {
+            font-weight: bold;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .coupon-desc {
+            font-size: 12px;
+            color: #ffe6e6;
+            margin-top: 3px;
+        }
+
+        .coupon-card.claimed {
+            background: linear-gradient(135deg, #444 0%, #222 100%);
+            border-left-color: #111;
+            transform: scale(0.98);
+        }
+
+        .coupon-card.claimed .coupon-desc {
+            color: #888;
+            text-decoration: line-through;
+        }
+
+        .kiss-counter-zone {
+            background: rgba(255, 77, 77, 0.08);
+            border: 1px solid #ff4d4d;
+            border-radius: 18px;
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kiss-trigger-heart {
+            font-size: 38px;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.1s ease;
+            animation: bounceMini 2s infinite ease-in-out;
+        }
+
+        .kiss-trigger-heart:active {
+            transform: scale(1.3);
+        }
+
+        .achievement-banner {
+            position: absolute;
+            top: -100px;
+            left: 5%;
+            width: 90%;
+            background: linear-gradient(135deg, #b8860b 0%, #e6b800 100%);
+            border: 2px solid #fff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 999;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: left;
+            color: #000;
+        }
+
+        .achievement-banner.show {
+            top: 20px;
+        }
+
+        .achievement-icon {
+            font-size: 28px;
+            background: rgba(255,255,255,0.3);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .achievement-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #3d2600;
+        }
+
+        .achievement-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* ==========================================================================
+           ANIMATIONS CONFIGURATION KEYFRAMES
+           ========================================================================== */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        @keyframes rotateDisk {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes bounceMini {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes popSlot {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+
+        <div class="achievement-banner" id="trophy-alert">
+            <div class="achievement-icon" id="trophy-icon">🏆</div>
+            <div>
+                <div class="achievement-title">Achievement Unlocked!</div>
+                <div class="achievement-name" id="trophy-name">Perfect Score</div>
+            </div>
+        </div>
+
+        <canvas id="ambient-canvas" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;"></canvas>
+
+        <audio id="bg-audio" src="your-special-song.mp3" loop></audio>
+
+        <!-- SECURITY LOCK VIEW -->
+        <div class="page active" id="view-lock">
+            <div class="heart-frame">
+                <div class="heart-bg"></div>
+                <div class="heart-content">🐱</div>
+            </div>
+            <div class="passcode-header">Enter Passcode</div>
+            <div class="pin-slots">
+                <div class="slot" id="slot-0"></div>
+                <div class="slot" id="slot-1"></div>
+                <div class="slot" id="slot-2"></div>
+                <div class="slot" id="slot-3"></div>
+                <div class="slot" id="slot-4"></div>
+                <div class="slot" id="slot-5"></div>
+            </div>
+            <div class="pin-pad">
+                <div class="pad-btn" data-key="1">1</div>
+                <div class="pad-btn" data-key="2">2</div>
+                <div class="pad-btn" data-key="3">3</div>
+                <div class="pad-btn" data-key="4">4</div>
+                <div class="pad-btn" data-key="5">5</div>
+                <div class="pad-btn" data-key="6">6</div>
+                <div class="pad-btn" data-key="7">7</div>
+                <div class="pad-btn" data-key="8">8</div>
+                <div class="pad-btn" data-key="9">9</div>
+                <div class="pad-btn" data-key="erase">⌫</div>
+                <div class="pad-btn" data-key="0">0</div>
+                <div class="pad-btn" data-key="go">➔</div>
+            </div>
+        </div>
+
+        <!-- WRONG PIN BANNER VIEW -->
+        <div class="page" id="view-wrong">
+            <img src="cat-holding-knife.gif" alt="Wrong Code" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width:140px; height:140px; margin-bottom:20px;">
+            <div class="media-fallback" style="display:none; height:140px;"><span>😾</span>[Cat with Knife Asset]</div>
+            <h2 style="color:#ff4d4d; letter-spacing:1px; margin-bottom:10px;">WRONG PASSCODE</h2>
+            <p style="color:#aaa; font-size:14px;">That wasn't it! Try again before things get dicey.</p>
+            <button onclick="changePage('view-lock')">Try Again</button>
+        </div>
+
+        <!-- INSTRUMENTAL VINYL TRACK SOUNDSTAGE -->
+        <div class="page" id="view-player">
+            <h2 style="margin-bottom:5px;">Our Soundtrack</h2>
+            <p style="color:#aaa; font-size:13px;">Tap the record to hear our track</p>
+            
+            <div class="vinyl-container" onclick="toggleAudioEngine()" style="cursor: pointer;">
+                <svg class="tone-arm" id="player-arm" viewBox="0 0 60 100">
+                    <path d="M50,10 L50,40 L20,80 L23,85" stroke="#aaa" stroke-width="3" fill="none"/>
+                    <circle cx="50" cy="10" r="6" fill="#666" />
+                    <rect x="15" y="80" width="10" height="12" fill="#d62828" transform="rotate(15 15 80)" />
+                </svg>
+                <div class="vinyl-disk" id="player-disk">
+                    <div class="vinyl-center">🎵</div>
+                </div>
+            </div>
+
+            <div style="font-size:15px; font-weight:600; margin-bottom:5px;" id="track-title">Until I Found You - Stephen Sanchez</div>
+            <p style="color:#ff4d4d; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px;" id="audio-ui-trigger">Tap Vinyl to Spin & Play</p>
+            
+            <button onclick="changePage('view-anniversary')">Next</button>
+        </div>
+
+        <!-- LIVE METRIC TIMER AND MEMORY VAULT TIMELINE -->
+        <div class="page" id="view-anniversary">
+            <h2 style="margin-bottom: 2px; font-size:22px;">Happy Anniversary!</h2>
+            <p style="color: #ffb3b3; font-size: 13px;">Time spent loving you:</p>
+            
+            <div class="live-counter-box">
+                <div class="counter-grid">
+                    <div class="counter-unit"><div class="counter-num" id="count-years">00</div><div class="counter-label">Yrs</div></div>
+                    <div class="counter-unit"><div class="counter-num" id="count-days">00</div><div class="counter-label">Days</div></div>
+                    <div class="counter-unit"><div class="counter-num" id="count-hours">00</div><div class="counter-label">Hrs</div></div>
+                    <div class="counter-unit"><div class="counter-num" id="count-mins">00</div><div class="counter-label">Mins</div></div>
+                    <div class="counter-unit"><div class="counter-num" id="count-secs">00</div><div class="counter-label">Secs</div></div>
+                </div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-item">
+                    <div class="timeline-badge">❤️</div>
+                    <div class="timeline-date">January 1st</div>
+                    <div class="timeline-desc">The magical day our beautiful chapter first began.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">🌹</div>
+                    <div class="timeline-date">February 14th</div>
+                    <div class="timeline-desc">Our very first sweet Valentine's celebration together.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">⏳</div>
+                    <div class="timeline-date">Today</div>
+                    <div class="timeline-desc">Celebrating our milestones, with a whole lifetime left to go!</div>
+                </div>
+            </div>
+            
+            <div class="gallery-grid">
+                <div class="art-frame">
+                    <img src="photo1.jpg" alt="Our Memory" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="media-fallback" style="display:none; height:180px;"><span>📸</span>[Photo 1 Missing]</div>
+                </div>
+                <div class="art-frame">
+                    <img src="photo2.jpg" alt="Our Kiss" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="media-fallback" style="display:none; height:180px;"><span>📸</span>[Photo 2 Missing]</div>
+                </div>
+            </div>
+            <button onclick="changePage('view-quiz')" style="margin-top:15px;">Our Quiz ➔</button>
+        </div>
+
+        <!-- DYNAMIC TRIVIA ENGAGEMENT MODULE -->
+        <div class="page" id="view-quiz">
+            <h2 style="margin-bottom: 5px;">Our Love Quiz 🧸</h2>
+            <p style="color:#aaa; font-size:12px; margin-bottom: 15px;" id="quiz-progress">Question 1 of 3</p>
+            <div id="quiz-question-box" style="background: rgba(255,255,255,0.05); border: 1px dashed #ff4d4d; padding:15px; border-radius:15px; font-size:15px; min-height:85px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; font-weight:600; width:100%; line-height:1.4;">
+                Loading challenge...
+            </div>
+            <div id="quiz-options-container" style="display:grid; grid-template-columns:1fr; gap:12px; width:100%;">
+            </div>
+            <div id="quiz-feedback" style="margin-top:20px; font-size:14px; font-weight:700; min-height:22px;"></div>
+        </div>
+
+        <!-- DIGITIZED SOUVENIR LETTER FLAP -->
+        <div class="page" id="view-letter">
+            <h2>A Letter For You</h2>
+            <p style="color:#aaa; font-size:13px;">Tap the envelope to open it</p>
+            
+            <div class="envelope-wrapper" id="envelope" onclick="toggleEnvelope()">
+                <div class="envelope-flap"></div>
+                <div class="envelope-letter">
+                    <p style="font-weight:bold; margin-bottom:8px; font-size:13px; color:#d62828;"></p>
+                    <p style="line-height:1.5; margin-bottom:10px;">
+                        Happy 5 months Anniversary Mommy. I can't believe hum dono ko 5 months Complete ho gya hai. I love in you in ways i did'nt know love existend. Thanks for always standing by my side, thanks for that lovely kiss I thought i would never ger thanks for 1st January 2026 1:14pm, thanks for 29th may 4:27pm, thakns for everything bby.
+                    </p>
+                    <p style="line-height:1.5;">
+                        Mommy I always love you and sorry ki tumhe wo dar hai of this generation of use and throw, im really sorry ki me wo dar dur nhi kar paya but me pura try karunga tumahara wo dar dur ho jaye, i love you in everyway possible bby. Sabne chor dia friends, bestfriend but tumne nhi, tumne haath hamehsa pakarke rakha kabhi nhi chora and I want a kiss again bby everday chaiya because meri mommy me jitna bhi french kiss karu meri marzi. In the end ye he bolna chahunga ki i love you mommy.
+                    </p>
+                    <p style="margin-top:15px; font-weight:bold; color:#d62828; text-align:right;">Daddy this side bby</p>
+                </div>
+            </div>
+            
+            <button onclick="changePage('view-scratch')">Scratch Surprise ➔</button>
+        </div>
+
+        <!-- HTML CANVAS REWARD COAT CARD SCRATCH MODULE -->
+        <div class="page" id="view-scratch">
+            <h2>Scratch to Reveal 🤫</h2>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Rub your finger across the coat to reveal your reward!</p>
+            
+            <div style="position:relative; width:260px; height:200px; margin: 10px auto; border-radius:15px; overflow:hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.6);">
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:#4a0e0e; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; text-align:center; border: 2px solid #b8860b;">
+                    <span style="font-size:36px; margin-bottom:5px;">💗💤</span>
+                    <div style="font-size:15px; font-weight:bold; color:#ff4d4d; text-transform:uppercase; letter-spacing:1px;">GRAND PRIZE UNLOCKED!</div>
+                    <p style="font-size:12px; color:#ffe6e6; margin-top:6px; line-height:1.4;">A Can sleep on my chest snd press it too anytime you want mommy!!❤️</p>
+                </div>
+                <canvas id="scratch-canvas" width="260" height="200" style="position:absolute; top:0; left:0; touch-action:none; cursor:pointer; z-index:10;"></canvas>
+            </div>
+            
+            <button id="scratch-next-btn" onclick="handleScratchCompleteTransition()" style="display:none; background-color:#ff4d4d;">Unlock Bouquet ➔</button>
+        </div>
+
+        <!-- REASON CAROUSEL PLUCK GENERATOR MODULE -->
+        <div class="page" id="view-bouquet">
+            <h2 style="color: #ffb3b3;">Your Virtual Bouquet 🌷</h2>
+            <p style="color:#aaa; font-size:12px;">Tap the button below to pluck a flower and reveal a reason why I adore you!</p>
+            
+            <div class="interactive-flower-box">
+                <div id="reason-text-box">Press the button below to read my heart... 🌸</div>
+            </div>
+            
+            <button onclick="revealNewReason()" style="background-color:#ff4d4d; margin-top:0;">Pluck a Flower 🌹</button>
+            <button onclick="changePage('view-coupons')" style="font-size:12px; padding:10px 25px;">View Gift Coupons ➔</button>
+        </div>
+
+        <!-- CLAIM coupons BOOK LISTING INTERFACE -->
+        <div class="page" id="view-coupons">
+            <h2 style="font-size: 19px;">Your Anniversary Coupons</h2>
+            <p style="color:#ff4d4d; font-size:12px; font-weight:700; margin-top: 3px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">✨ Tap on the vouchers to claim ✨</p>
+            
+            <div class="scrollable-content">
+                <div class="coupon-card" onclick="this.classList.toggle('claimed')">
+                    <div class="coupon-title">Always kiss from my side</div>
+                    <div class="coupon-desc">Valid forever, whenever you need a kiss</div>
+                </div>
+                <div class="coupon-card" onclick="this.classList.toggle('claimed')">
+                    <div class="coupon-title">will always love you</div>
+                    <div class="coupon-desc">I will love you in ways not imaginable</div>
+                </div>
+                <div class="coupon-card" onclick="this.classList.toggle('claimed')">
+                    <div class="coupon-title">Argument Escape Card</div>
+                    <div class="coupon-desc">Can shut me up in any Argument</div>
+                </div>
+                <div class="coupon-card" onclick="this.classList.toggle('claimed')">
+                    <div class="coupon-title">hugging teddy</div>
+                    <div class="coupon-desc">I will hug you until the world ends.</div>
+                </div>
+            </div>
+
+            <div class="kiss-counter-zone">
+                <div class="kiss-trigger-heart" onclick="sendDigitalKissToHubby()">💋</div>
+                <div style="font-size: 13px; font-weight: 700; color: #ffb3b3; margin-top: 2px;" id="kiss-display-score">Kisses sent to Hubby: 0</div>
+                <div style="font-size: 9px; color: #888; text-transform: uppercase; margin-top: 1px;">Tap lips to send another!</div>
+            </div>
+            
+            <button onclick="resetApplicationState()" style="padding: 6px 20px; font-size: 11px; margin-top: 6px;">Start Over</button>
+        </div>
+
+    </div>
+
+    <!-- MAIN ENGINE CORE CONTROL LOGIC -->
+    <script>
+        const SECRET_PASSCODE = "010126"; 
+        let enteredPinAccumulator = "";
+        let quizWrongAttempts = 0; 
+
+        // TARGET TIMELINE CHRONO ENGINE CONSTANTS
+        const ANNIVERSARY_START_DATE = new Date("2026-01-01T13:14:00"); 
+
+        const loveReasonsArray = [
+            "Because you patiently endure my daily rants and wild late-night overthinking tangents. 💖",
+            "Because you hype me up and treat me like I am a world-tour headlining superstar. 🎤",
+            "Because you are the absolute calm center and safe harbor amidst all of my life's chaotic storms. ⚓",
+            "Because your laugh is my absolute favorite sound in the whole entire universe. 🔊",
+            "Because you make even the most boring grocery store trips feel like a massive adventure. 🛒",
+            "Because of the safe, peaceful way you look at me when you think I'm not looking back. 🤫"
+        ];
+
+        const quizData = [
+            {
+                question: "1. When did we have our first french kiss?",
+                options: ["29th may 2026 4:27pm", "Never", "5th may 2026 7:45pm", "30th may 2026 4:24pm"],
+                correct: 0
+            },
+            {
+                question: "Who loves the most?",
+                options: ["Ashma loves fahim?(Nahhhhhhh)", "Fahim loves ashma? (Hell yeahhhhhhhhh)", "none of us (bhulke bhi mat dabana🔪🥰)", "Jab answer pata hai to aur option kyu dekh rahi?"],
+                correct: 1
+            },
+            {
+                question: "Zada horny kon hota hai?",
+                options: ["No one", "Ashma", "Pata nhi kya dalu isme", "Ashma ka daddy"],
+                correct: 3 
+            }
+        ];
+        let currentQuizIndex = 0;
+
+        const audioNode = document.getElementById('bg-audio');
+        const diskNode = document.getElementById('player-disk');
+        const armNode = document.getElementById('player-arm');
+        const uiTriggerText = document.getElementById('audio-ui-trigger');
+
+        // AMBIENT HEART GRAPHIC LAYERS
+        const ambientCanvas = document.getElementById('ambient-canvas');
+        const ctxAmbient = ambientCanvas.getContext('2d');
+        let heartsArray = [];
+
+        function resizeAmbientCanvas() {
+            ambientCanvas.width = ambientCanvas.parentElement.clientWidth;
+            ambientCanvas.height = ambientCanvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeAmbientCanvas);
+        resizeAmbientCanvas();
+
+        class HeartParticle {
+            constructor() {
+                this.x = Math.random() * ambientCanvas.width;
+                this.y = Math.random() * -100 - 20;
+                this.size = Math.random() * 8 + 6;
+                this.speedY = Math.random() * 1.2 + 0.4;
+                this.speedX = Math.sin(Math.random() * 2) * 0.3;
+                this.opacity = Math.random() * 0.4 + 0.15;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > ambientCanvas.height) {
+                    this.y = -20;
+                    this.x = Math.random() * ambientCanvas.width;
+                }
+            }
+            draw() {
+                ctxAmbient.fillStyle = `rgba(214, 40, 40, ${this.opacity})`;
+                ctxAmbient.beginPath();
+                let x = this.x;
+                let y = this.y;
+                let size = this.size;
+                ctxAmbient.moveTo(x, y + size / 4);
+                ctxAmbient.quadraticCurveTo(x, y, x + size / 2, y);
+                ctxAmbient.quadraticCurveTo(x + size, y, x + size, y + size / 3);
+                ctxAmbient.quadraticCurveTo(x + size, y + size * 2 / 3, x + size / 2, y + size);
+                ctxAmbient.quadraticCurveTo(x, y + size * 2 / 3, x, y + size / 3);
+                ctxAmbient.quadraticCurveTo(x, y, x, y + size / 4);
+                ctxAmbient.closePath();
+                ctxAmbient.fill();
+            }
+        }
+
+        function initAmbientHearts() {
+            heartsArray = [];
+            for (let i = 0; i < 20; i++) {
+                heartsArray.push(new HeartParticle());
+            }
+        }
+
+        function animateAmbientHearts() {
+            ctxAmbient.clearRect(0, 0, ambientCanvas.width, ambientCanvas.height);
+            heartsArray.forEach(heart => {
+                heart.update();
+                heart.draw();
+            });
+            requestAnimationFrame(animateAmbientHearts);
+        }
+        initAmbientHearts();
+        animateAmbientHearts();
+
+        // RUNTIME CHRONO DIGITAL COMPUTATION
+        function updateRelationshipClock() {
+            const rightNow = new Date();
+            let yearsPassed = rightNow.getFullYear() - ANNIVERSARY_START_DATE.getFullYear();
+            
+            let currentYearAnniversary = new Date(ANNIVERSARY_START_DATE);
+            currentYearAnniversary.setFullYear(rightNow.getFullYear());
+            
+            if (rightNow < currentYearAnniversary) {
+                yearsPassed--;
+                currentYearAnniversary.setFullYear(rightNow.getFullYear() - 1);
+            }
+            
+            if (yearsPassed < 0) yearsPassed = 0;
+
+            const differenceInMs = rightNow - currentYearAnniversary;
+            const calculateDays = Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
+            const calculateHours = Math.floor((differenceInMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const calculateMinutes = Math.floor((differenceInMs % (1000 * 60 * 60)) / (1000 * 60));
+            const calculateSeconds = Math.floor((differenceInMs % (1000 * 60)) / 1000);
+
+            document.getElementById('count-years').textContent = String(yearsPassed).padStart(2, '0');
+            document.getElementById('count-days').textContent = String(calculateDays).padStart(2, '0');
+            document.getElementById('count-hours').textContent = String(calculateHours).padStart(2, '0');
+            document.getElementById('count-mins').textContent = String(calculateMinutes).padStart(2, '0');
+            document.getElementById('count-secs').textContent = String(calculateSeconds).padStart(2, '0');
+        }
+        setInterval(updateRelationshipClock, 1000);
+        updateRelationshipClock();
+
+        function changePage(targetPageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(targetPageId).classList.add('active');
+            
+            if (targetPageId === 'view-quiz') {
+                loadQuizQuestion();
+            }
+            if (targetPageId === 'view-coupons') {
+                updateKissScoreboardUI();
+            }
+        }
+
+        // --- HARDENED MOBILE PASSCODE PAD EVENT BINDINGS ---
+        function registerKeypressAction(rawKey) {
+            if (rawKey === 'erase') {
+                enteredPinAccumulator = enteredPinAccumulator.slice(0, -1);
+            } else if (rawKey === 'go') {
+                evaluatePasscode();
+                return;
+            } else {
+                if (enteredPinAccumulator.length < 6) {
+                    enteredPinAccumulator = enteredPinAccumulator + rawKey;
+                }
+            }
+            
+            renderPinDisplay();
+            
+            if (enteredPinAccumulator.length === 6) {
+                setTimeout(evaluatePasscode, 250);
+            }
+        }
+
+        function evaluatePasscode() {
+            if (enteredPinAccumulator === SECRET_PASSCODE) {
+                changePage('view-player'); 
+            } else {
+                changePage('view-wrong');
+            }
+        }
+
+        function renderPinDisplay() {
+            for (let i = 0; i < 6; i++) {
+                const targetSlot = document.getElementById(`slot-${i}`);
+                if (i < enteredPinAccumulator.length) {
+                    if (targetSlot.textContent !== "•") {
+                        targetSlot.textContent = "•";
+                        targetSlot.classList.add('filled');
+                    }
+                } else {
+                    targetSlot.textContent = "";
+                    targetSlot.classList.remove('filled');
+                }
+            }
+        }
+
+        // Attach specialized mobile and desktop hybrid event routing to passcode pad
+        document.querySelectorAll('.pad-btn').forEach(btn => {
+            const boundKey = btn.getAttribute('data-key');
+            
+            // Touchstart for instant ultra-low latency response on mobile views
+            btn.addEventListener('touchstart', function(e) {
+                e.preventDefault(); 
+                registerKeypressAction(boundKey);
+            }, { passive: false });
+
+            // Standard fallback click handler for computer browsers
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                registerKeypressAction(boundKey);
+            });
+        });
+
+        // ACHIEVEMENT HUD MANAGER
+        function launchTrophyNotification(trophyTitle, emojiIcon) {
+            const banner = document.getElementById('trophy-alert');
+            document.getElementById('trophy-icon').textContent = emojiIcon;
+            document.getElementById('trophy-name').textContent = trophyTitle;
+            
+            banner.classList.add('show');
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 4000);
+        }
+
+        // TRIVIA INTERACTION HANDLERS
+        function loadQuizQuestion() {
+            const progressNode = document.getElementById('quiz-progress');
+            const questionBoxNode = document.getElementById('quiz-question-box');
+            const optionsBoxNode = document.getElementById('quiz-options-container');
+            const feedbackNode = document.getElementById('quiz-feedback');
+
+            if (currentQuizIndex >= quizData.length) {
+                progressNode.textContent = "Quiz Complete! 🎉";
+                questionBoxNode.innerHTML = "Wow, you know our love story perfectly! The next special layer is now unlocked for you. 💞";
+                optionsBoxNode.innerHTML = `<button onclick="changePage('view-letter')">Read My Letter ➔</button>`;
+                feedbackNode.textContent = "";
+
+                if (quizWrongAttempts === 0) {
+                    setTimeout(() => { launchTrophyNotification("Mind Reader 🧠", "👑"); }, 600);
+                }
+                return;
+            }
+
+            const currentQuestionObj = quizData[currentQuizIndex];
+            progressNode.textContent = `Question ${currentQuizIndex + 1} of ${quizData.length}`;
+            questionBoxNode.textContent = currentQuestionObj.question;
+            feedbackNode.textContent = "";
+            optionsBoxNode.innerHTML = "";
+
+            currentQuestionObj.options.forEach((optionText, optionIndex) => {
+                const blockOptionElement = document.createElement('div');
+                blockOptionElement.style.background = "#3d0c0c";
+                blockOptionElement.style.border = "1px solid #5a1818";
+                blockOptionElement.style.padding = "15px";
+                blockOptionElement.style.borderRadius = "12px";
+                blockOptionElement.style.fontSize = "14px";
+                blockOptionElement.style.cursor = "pointer";
+                blockOptionElement.style.textAlign = "center";
+                blockOptionElement.style.fontWeight = "600";
+                blockOptionElement.textContent = optionText;
+                
+                blockOptionElement.onclick = () => handleQuizSubmission(optionIndex);
+                optionsBoxNode.appendChild(blockOptionElement);
+            });
+        }
+
+        function handleQuizSubmission(selectedIndex) {
+            const currentQuestionObj = quizData[currentQuizIndex];
+            const feedbackNode = document.getElementById('quiz-feedback');
+            
+            if (selectedIndex === currentQuestionObj.correct) {
+                feedbackNode.style.color = "#4dff4d";
+                feedbackNode.textContent = "Correct Answer! ✨🥰";
+                currentQuizIndex++;
+                setTimeout(loadQuizQuestion, 1200);
+            } else {
+                feedbackNode.style.color = "#ff4d4d";
+                feedbackNode.textContent = "Oops! That's wrong, try again sweetie! 🙈";
+                quizWrongAttempts++;
+            }
+        }
+
+        // CANVAS REWARD COAT CARD SCRATCH LOGIC
+        const scratchCanvas = document.getElementById('scratch-canvas');
+        const sCtx = scratchCanvas.getContext('2d');
+        let isDrawingScratch = false;
+
+        function initScratchCard() {
+            sCtx.globalCompositeOperation = 'source-over';
+            sCtx.fillStyle = '#8c8c8c'; 
+            sCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+            
+            sCtx.fillStyle = '#ffffff';
+            sCtx.font = 'bold 12px sans-serif';
+            sCtx.textAlign = 'center';
+            sCtx.fillText('SCRATCH WITH FINGER HERE 🖐️', scratchCanvas.width / 2, scratchCanvas.height / 2 + 4);
+            
+            sCtx.globalCompositeOperation = 'destination-out';
+            sCtx.lineWidth = 32;
+            sCtx.lineCap = 'round';
+            sCtx.lineJoin = 'round';
+        }
+
+        function getScratchCoords(e) {
+            const rect = scratchCanvas.getBoundingClientRect();
+            if (e.touches && e.touches.length > 0) {
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function startScratch(e) {
+            isDrawingScratch = true;
+            const coords = getScratchCoords(e);
+            sCtx.beginPath();
+            sCtx.moveTo(coords.x, coords.y);
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function moveScratch(e) {
+            if (!isDrawingScratch) return;
+            const coords = getScratchCoords(e);
+            sCtx.lineTo(coords.x, coords.y);
+            sCtx.stroke();
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function endScratch() {
+            if (!isDrawingScratch) return;
+            isDrawingScratch = false;
+            checkScratchPercentage();
+        }
+
+        function checkScratchPercentage() {
+            const imgData = sCtx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+            const pixels = imgData.data;
+            let clearedCount = 0;
+            
+            for (let i = 3; i < pixels.length; i += 8) {
+                if (pixels[i] === 0) clearedCount++;
+            }
+            
+            const totalPixels = pixels.length / 8;
+            if ((clearedCount / totalPixels) > 0.40) { 
+                scratchCanvas.style.transition = 'opacity 0.4s ease';
+                scratchCanvas.style.opacity = '0';
+                setTimeout(() => {
+                    scratchCanvas.style.display = 'none';
+                    document.getElementById('scratch-next-btn').style.display = 'inline-block';
+                }, 400);
+            }
+        }
+
+        function handleScratchCompleteTransition() {
+            changePage('view-bouquet');
+            setTimeout(() => { launchTrophyNotification("Master Scraper ✨", "✈️"); }, 800);
+        }
+
+        scratchCanvas.addEventListener('mousedown', startScratch);
+        scratchCanvas.addEventListener('mousemove', moveScratch);
+        window.addEventListener('mouseup', endScratch);
+
+        scratchCanvas.addEventListener('touchstart', startScratch, { passive: false });
+        scratchCanvas.addEventListener('touchmove', moveScratch, { passive: false });
+        window.addEventListener('touchend', endScratch);
+        initScratchCard();
+
+        // PERSISTENT SCORE COUNTER ENGINE
+        function sendDigitalKissToHubby() {
+            let localTally = parseInt(localStorage.getItem('anniversary_kiss_tally') || '0', 10);
+            localTally++;
+            localStorage.setItem('anniversary_kiss_tally', localTally);
+            updateKissScoreboardUI();
+
+            if (localTally === 25) {
+                launchTrophyNotification("Obsessed Much? 💋", "👑");
+            }
+
+            for (let i = 0; i < 4; i++) {
+                let burstHeart = new HeartParticle();
+                burstHeart.y = ambientCanvas.height - 100 + (Math.random() * 40 - 20);
+                burstHeart.x = ambientCanvas.width / 2 + (Math.random() * 80 - 40);
+                burstHeart.speedY = Math.random() * -2.5 - 1.5; 
+                burstHeart.opacity = 0.8;
+                heartsArray.push(burstHeart);
+            }
+        }
+
+        function updateKissScoreboardUI() {
+            const runningCount = localStorage.getItem('anniversary_kiss_tally') || '0';
+            document.getElementById('kiss-display-score').textContent = `Kisses sent to Hubby: ${runningCount}`;
+        }
+
+        // MEDIA ENGINE HANDLERS
+        function toggleAudioEngine() {
+            if (audioNode.paused) {
+                audioNode.play().catch(err => console.log("Blocked: ", err));
+                diskNode.classList.add('playing');
+                armNode.classList.add('engaged');
+                uiTriggerText.textContent = "Pause Track ⏸️";
+            } else {
+                audioNode.pause();
+                diskNode.classList.remove('playing');
+                armNode.classList.remove('engaged');
+                uiTriggerText.textContent = "Tap Vinyl to Spin & Play ▶️";
+            }
+        }
+
+        function toggleEnvelope() {
+            document.getElementById('envelope').classList.toggle('open');
+        }
+
+        function revealNewReason() {
+            const textBox = document.getElementById('reason-text-box');
+            const randomIndex = Math.floor(Math.random() * loveReasonsArray.length);
+            textBox.style.animation = 'none';
+            textBox.offsetHeight; 
+            textBox.style.animation = null;
+            textBox.innerHTML = loveReasonsArray[randomIndex];
+        }
+
+        function resetApplicationState() {
+            enteredPinAccumulator = "";
+            currentQuizIndex = 0;
+            quizWrongAttempts = 0;
+            renderPinDisplay();
+            audioNode.pause();
+            audioNode.currentTime = 0;
+            diskNode.classList.remove('playing');
+            armNode.classList.remove('engaged');
+            uiTriggerText.textContent = "Tap Vinyl to Spin & Play";
+            document.getElementById('envelope').classList.remove('open');
+            document.querySelectorAll('.coupon-card').forEach(c => c.classList.remove('claimed'));
+            document.getElementById('reason-text-box').innerHTML = "Press the button below to read my heart... 🌸";
+            
+            scratchCanvas.style.display = 'block';
+            scratchCanvas.style.opacity = '1';
+            initScratchCard();
+            document.getElementById('scratch-next-btn').style.display = 'none';
+            
+            changePage('view-lock');
+        }
+    </script>
+</body>
+</html>
